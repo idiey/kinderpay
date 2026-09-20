@@ -34,7 +34,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-pl
 COPY . .
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN mkdir -p /var/log/supervisor /var/run \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Copy configurations
 COPY docker/nginx.conf /etc/nginx/nginx.conf

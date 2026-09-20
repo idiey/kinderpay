@@ -23,4 +23,5 @@ if [ "$SEED_ON_DEPLOY" = "true" ]; then
 fi
 
 echo "Starting Supervisor..."
+mkdir -p /var/log/supervisor
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
