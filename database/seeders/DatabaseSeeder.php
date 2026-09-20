@@ -30,16 +30,17 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
         ]);
 
-        if (app()->environment('local')) {
-            // 1. Super Admin
-            $superAdmin = User::firstOrCreate(
-                ['email' => 'admin@kinderpay.test'],
-                [
-                    'name' => 'Super Admin',
-                    'password' => Hash::make('password'),
-                ]
-            );
-            $superAdmin->assignRole('super_admin');
+        // Seed demo accounts and operational data
+        // 1. Super Admin
+        $superAdmin = User::firstOrCreate(
+            ['email' => 'admin@kinderpay.test'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('password'),
+                'role' => 'super_admin',
+            ]
+        );
+        $superAdmin->assignRole('super_admin');
 
             // 2. Demo Kindergarten
             $kindergarten = Kindergarten::firstOrCreate(
@@ -303,6 +304,5 @@ class DatabaseSeeder extends Seeder
                 ['invoice_id' => $inv3->id, 'description' => 'Transportation Van (Van Sekolah)'],
                 ['quantity' => 1, 'unit_price' => 120.00, 'discount' => 0.00, 'total' => 120.00]
             );
-        }
     }
 }

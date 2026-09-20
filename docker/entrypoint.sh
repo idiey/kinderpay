@@ -33,10 +33,8 @@ php artisan event:cache
 echo "Running migrations..."
 php artisan migrate --force
 
-if [ "$SEED_ON_DEPLOY" = "true" ]; then
-    echo "Running seeders..."
-    php artisan db:seed --force
-fi
+echo "Ensuring seeders are applied..."
+php artisan db:seed --force
 
 echo "Starting Supervisor..."
 mkdir -p /var/log/supervisor
