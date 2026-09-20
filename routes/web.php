@@ -14,6 +14,22 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Health Check Route (Fast, unauthenticated, zero session overhead)
+Route::get('/healthz', function () {
+    return response('OK', 200)->header('Content-Type', 'text/plain');
+});
+
+// PWA Static Asset Deliveries
+Route::get('/manifest.json', function () {
+    return response()->file(public_path('manifest.json'), ['Content-Type' => 'application/manifest+json']);
+});
+Route::get('/sw.js', function () {
+    return response()->file(public_path('sw.js'), ['Content-Type' => 'application/javascript']);
+});
+Route::get('/offline', function () {
+    return view('offline');
+})->name('offline');
+
 // Public Welcome Page
 Route::get('/', function () {
     return Inertia::render('Welcome', [
