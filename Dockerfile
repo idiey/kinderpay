@@ -1,14 +1,3 @@
-# Stage 1: Build Node assets
-FROM node:20-alpine AS build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY webpack.mix.js* vite.config.js* tailwind.config.js* postcss.config.js* tsconfig.json* ./
-COPY resources ./resources
-COPY public ./public
-RUN npm run build
-
-# Stage 2: Runtime PHP 8.3 FPM
 FROM php:8.3-fpm-alpine
 
 # Install system dependencies & PHP extensions
@@ -40,11 +29,8 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Copy application code
+# Copy application code (including pre-compiled public/build)
 COPY . .
-
-# Copy built assets from Stage 1
-COPY --from=build /app/public/build ./public/build
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
@@ -57,7 +43,7 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 # Make entrypoint executable
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Expose port
+# Expose port 80
 EXPOSE 80
 
 # Run entrypoint
