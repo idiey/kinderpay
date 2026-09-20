@@ -4,6 +4,7 @@ services:
     env: docker
     region: frankfurt # choose your preferred region
     plan: free
+    dockerfilePath: ./Dockerfile
     dockerCommand: "" # Uses ENTRYPOINT from Dockerfile
     healthCheckPath: /up
     envVars:
