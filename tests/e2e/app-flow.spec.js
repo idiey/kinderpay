@@ -14,7 +14,7 @@ test.describe('KinderPay Core User Flows', () => {
     await page.goto('/login');
     await page.fill('input[type="email"]', 'demo@kinderpay.test');
     await page.fill('input[type="password"]', 'password');
-    await page.click('button[type="submit"]');
+    await page.getByRole('button', { name: 'Log in' }).click();
 
     // 2. Verify Admin Dashboard
     await expect(page).toHaveURL(/.*dashboard/);
@@ -31,27 +31,30 @@ test.describe('KinderPay Core User Flows', () => {
 
     // 5. Navigate to Payroll
     await page.goto('/payroll');
-    await expect(page.locator('text=Monthly Payroll')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Monthly Payroll' })).toBeVisible();
 
     // 6. Navigate to Financial Reports
     await page.goto('/reports/finance');
-    await expect(page.locator('text=Financial Reports & Profitability')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Financial Reports & Profitability' })).toBeVisible();
   });
 
   test('Parent Portal Flow: Login, View Children, View Invoice with FPX Button', async ({ page }) => {
-    // 1. Login as Parent
+    // 1. Clear session / cookies to test fresh parent login
+    await page.context().clearCookies();
     await page.goto('/login');
     await page.fill('input[type="email"]', 'parent@kinderpay.test');
     await page.fill('input[type="password"]', 'password');
-    await page.click('button[type="submit"]');
+    await Promise.all([
+      page.waitForURL(/.*parent\/dashboard/),
+      page.getByRole('button', { name: 'Log in' }).click(),
+    ]);
 
-    // 2. Check Parent Portal
-    await page.goto('/parent/dashboard');
-    await expect(page.locator('text=Parent Portal')).toBeVisible();
-    await expect(page.locator('text=Muhammad Rayyan bin Rosli')).toBeVisible();
+    // 2. Check Parent Portal Dashboard
+    await expect(page.getByRole('heading', { name: 'Parent Portal' })).toBeVisible();
+    await expect(page.getByText('Muhammad Rayyan bin Rosli').first()).toBeVisible();
 
     // 3. View Invoices
     await page.goto('/parent/invoices');
-    await expect(page.locator('text=Tuition Invoices')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tuition Invoices' })).toBeVisible();
   });
 });
