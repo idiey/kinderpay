@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: kinderpay
+    env: docker
+    region: frankfurt # choose your preferred region
+    plan: free
+    dockerCommand: "" # Uses ENTRYPOINT from Dockerfile
+    healthCheckPath: /up
+    envVars:
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://kinderpay.onrender.com
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: DB_DATABASE
+        value: /var/www/html/database/database.sqlite
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: SEED_ON_DEPLOY
+        value: "false"
