@@ -4,11 +4,14 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
   HomeIcon, UsersIcon, AcademicCapIcon, CurrencyDollarIcon, DocumentTextIcon,
   CreditCardIcon, UserGroupIcon, CalendarIcon, BanknotesIcon, ChartBarIcon,
-  CogIcon, Bars3Icon, XMarkIcon
+  CogIcon, Bars3Icon, XMarkIcon, BuildingLibraryIcon, ChevronDownIcon, CheckIcon
 } from '@heroicons/vue/24/outline';
+import { router } from '@inertiajs/vue3';
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
+const currentKindergarten = computed(() => page.props.auth.kindergarten);
+const availableKindergartens = computed(() => page.props.auth.available_kindergartens || []);
 
 const hasRole = (roleOrRoles) => {
   const userRoles = page.props.auth.roles || (user.value?.roles ? user.value.roles.map(r => r.name) : []);
@@ -19,18 +22,29 @@ const hasRole = (roleOrRoles) => {
   return userRoles.includes(roleOrRoles);
 };
 
+const isSuperAdmin = computed(() => hasRole('super_admin') || user.value?.role === 'super_admin');
+
+const switchBranch = (kindergartenId) => {
+  if (currentKindergarten.value?.id === kindergartenId) return;
+  router.post(route('tenants.switch'), { kindergarten_id: kindergartenId }, {
+    preserveScroll: true,
+    preserveState: false,
+  });
+};
+
 const navigation = computed(() => [
   { name: 'Dashboard', href: route('dashboard'), icon: HomeIcon, show: true, active: route().current('dashboard') },
-  { name: 'Students', href: route('students.index'), icon: UsersIcon, show: hasRole(['admin', 'accounts', 'teacher']), active: route().current('students.*') },
-  { name: 'Classes', href: route('classes.index'), icon: AcademicCapIcon, show: hasRole(['admin', 'teacher']), active: route().current('classes.*') },
-  { name: 'Fee Templates', href: route('fee-templates.index'), icon: CurrencyDollarIcon, show: hasRole(['admin', 'accounts']), active: route().current('fee-templates.*') },
-  { name: 'Invoices', href: route('invoices.index'), icon: DocumentTextIcon, show: hasRole(['admin', 'accounts']), active: route().current('invoices.*') },
-  { name: 'Payments', href: route('payments.index'), icon: CreditCardIcon, show: hasRole(['admin', 'accounts']), active: route().current('payments.*') },
-  { name: 'Staff', href: route('staff.index'), icon: UserGroupIcon, show: hasRole(['admin']), active: route().current('staff.*') },
-  { name: 'Leave', href: route('leave.index'), icon: CalendarIcon, show: hasRole(['admin', 'teacher']), active: route().current('leave.*') },
-  { name: 'Payroll', href: route('payroll.index'), icon: BanknotesIcon, show: hasRole(['admin', 'accounts']), active: route().current('payroll.*') },
-  { name: 'Finance Reports', href: route('reports.finance'), icon: ChartBarIcon, show: hasRole(['admin', 'accounts']), active: route().current('reports.finance') },
-  { name: 'Settings', href: route('settings.index'), icon: CogIcon, show: hasRole(['admin']), active: route().current('settings.*') },
+  { name: 'Kindergarten Branches', href: route('kindergartens.index'), icon: BuildingLibraryIcon, show: isSuperAdmin.value, active: route().current('kindergartens.*') },
+  { name: 'Students', href: route('students.index'), icon: UsersIcon, show: hasRole(['admin', 'accounts', 'teacher']) || isSuperAdmin.value, active: route().current('students.*') },
+  { name: 'Classes', href: route('classes.index'), icon: AcademicCapIcon, show: hasRole(['admin', 'teacher']) || isSuperAdmin.value, active: route().current('classes.*') },
+  { name: 'Fee Templates', href: route('fee-templates.index'), icon: CurrencyDollarIcon, show: hasRole(['admin', 'accounts']) || isSuperAdmin.value, active: route().current('fee-templates.*') },
+  { name: 'Invoices', href: route('invoices.index'), icon: DocumentTextIcon, show: hasRole(['admin', 'accounts']) || isSuperAdmin.value, active: route().current('invoices.*') },
+  { name: 'Payments', href: route('payments.index'), icon: CreditCardIcon, show: hasRole(['admin', 'accounts']) || isSuperAdmin.value, active: route().current('payments.*') },
+  { name: 'Staff', href: route('staff.index'), icon: UserGroupIcon, show: hasRole(['admin']) || isSuperAdmin.value, active: route().current('staff.*') },
+  { name: 'Leave', href: route('leave.index'), icon: CalendarIcon, show: hasRole(['admin', 'teacher']) || isSuperAdmin.value, active: route().current('leave.*') },
+  { name: 'Payroll', href: route('payroll.index'), icon: BanknotesIcon, show: hasRole(['admin', 'accounts']) || isSuperAdmin.value, active: route().current('payroll.*') },
+  { name: 'Finance Reports', href: route('reports.finance'), icon: ChartBarIcon, show: hasRole(['admin', 'accounts']) || isSuperAdmin.value, active: route().current('reports.finance') },
+  { name: 'Settings', href: route('settings.index'), icon: CogIcon, show: hasRole(['admin']) || isSuperAdmin.value, active: route().current('settings.*') },
 ]);
 
 const sidebarOpen = ref(false);
@@ -91,13 +105,60 @@ const sidebarOpen = ref(false);
           <Bars3Icon class="h-6 w-6" aria-hidden="true" />
         </button>
         <div class="flex flex-1 justify-between px-4">
-          <div class="flex flex-1"></div>
+          <!-- Active Branch Indicator / Switcher -->
+          <div class="flex items-center">
+            <div v-if="availableKindergartens.length > 1 && isSuperAdmin" class="relative group cursor-pointer">
+              <button type="button" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-900 text-xs font-semibold shadow-sm transition">
+                <BuildingLibraryIcon class="w-4 h-4 text-indigo-600" />
+                <span class="max-w-[140px] sm:max-w-xs truncate">{{ currentKindergarten?.name || 'Select Branch' }}</span>
+                <span class="bg-indigo-200 text-indigo-800 text-[10px] px-1.5 py-0.2 rounded font-mono">{{ currentKindergarten?.invoice_prefix }}</span>
+                <ChevronDownIcon class="w-3.5 h-3.5 text-indigo-500 ml-0.5" />
+              </button>
+
+              <div class="absolute left-0 top-full z-50 mt-1 w-64 origin-top-left rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-black ring-opacity-5 hidden group-hover:block border border-gray-100">
+                <div class="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100 flex items-center justify-between">
+                  <span>Switch Branch</span>
+                  <span>{{ availableKindergartens.length }} Total</span>
+                </div>
+                <div class="max-h-56 overflow-y-auto py-1">
+                  <button
+                    v-for="k in availableKindergartens"
+                    :key="k.id"
+                    type="button"
+                    @click="switchBranch(k.id)"
+                    class="w-full text-left px-2.5 py-2 rounded-lg text-xs flex items-center justify-between hover:bg-indigo-50 transition"
+                    :class="currentKindergarten?.id === k.id ? 'bg-indigo-50/80 font-bold text-indigo-700' : 'text-gray-700'"
+                  >
+                    <div class="truncate">
+                      <div class="truncate">{{ k.name }}</div>
+                      <div class="text-[10px] text-gray-400">{{ k.city }}, {{ k.state }}</div>
+                    </div>
+                    <CheckIcon v-if="currentKindergarten?.id === k.id" class="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                  </button>
+                </div>
+                <div class="border-t border-gray-100 pt-1 mt-1">
+                  <Link :href="route('kindergartens.index')" class="w-full text-left block px-2.5 py-1.5 text-xs text-indigo-600 font-semibold hover:bg-indigo-50 rounded-lg">
+                    + Manage All Branches
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <!-- Single Branch Info for Normal Staff -->
+            <div v-else-if="currentKindergarten" class="flex items-center gap-1.5 px-3 py-1 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-700">
+              <BuildingLibraryIcon class="w-4 h-4 text-gray-500" />
+              <span class="font-medium truncate max-w-xs">{{ currentKindergarten.name }}</span>
+            </div>
+          </div>
+
           <div class="ml-4 flex items-center md:ml-6 group relative cursor-pointer">
-            <div class="flex items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 py-2">
+            <div class="flex items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 py-2 gap-2">
               <span class="text-gray-700 font-medium">{{ user?.name }}</span>
+              <span v-if="isSuperAdmin" class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">SUPER ADMIN</span>
             </div>
             <div class="absolute right-0 top-full z-50 mt-1 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 hidden group-hover:block border border-gray-200">
               <Link :href="route('profile.edit')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</Link>
+              <Link v-if="isSuperAdmin" :href="route('kindergartens.index')" class="block px-4 py-2 text-sm text-indigo-600 font-semibold hover:bg-gray-100">Kindergarten Branches</Link>
               <Link :href="route('logout')" method="post" as="button" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Log Out</Link>
             </div>
           </div>

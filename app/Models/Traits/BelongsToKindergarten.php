@@ -12,14 +12,28 @@ trait BelongsToKindergarten
     protected static function bootBelongsToKindergarten(): void
     {
         static::addGlobalScope('kindergarten', function (Builder $builder) {
-            if (Auth::check() && Auth::user()->kindergarten_id) {
-                $builder->where('kindergarten_id', Auth::user()->kindergarten_id);
+            if (Auth::check()) {
+                $user = Auth::user();
+                $tenantId = method_exists($user, 'activeKindergartenId') 
+                    ? $user->activeKindergartenId() 
+                    : $user->kindergarten_id;
+
+                if ($tenantId) {
+                    $builder->where($builder->getModel()->getTable() . '.kindergarten_id', $tenantId);
+                }
             }
         });
 
         static::creating(function ($model) {
-            if (empty($model->kindergarten_id) && Auth::check() && Auth::user()->kindergarten_id) {
-                $model->kindergarten_id = Auth::user()->kindergarten_id;
+            if (empty($model->kindergarten_id) && Auth::check()) {
+                $user = Auth::user();
+                $tenantId = method_exists($user, 'activeKindergartenId') 
+                    ? $user->activeKindergartenId() 
+                    : $user->kindergarten_id;
+
+                if ($tenantId) {
+                    $model->kindergarten_id = $tenantId;
+                }
             }
         });
     }

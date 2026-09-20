@@ -96,6 +96,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Finance Reports
     Route::get('/reports/finance', [\App\Http\Controllers\FinanceReportController::class, 'index'])->name('reports.finance');
 
+    // Multi-Branch Kindergarten Management
+    Route::get('/kindergartens', [\App\Http\Controllers\KindergartenController::class, 'index'])->name('kindergartens.index');
+    Route::post('/kindergartens', [\App\Http\Controllers\KindergartenController::class, 'store'])->name('kindergartens.store');
+    Route::put('/kindergartens/{kindergarten}', [\App\Http\Controllers\KindergartenController::class, 'update'])->name('kindergartens.update');
+    Route::post('/tenants/switch', [\App\Http\Controllers\TenantSwitchController::class, 'switch'])->name('tenants.switch');
+
     // Kindergarten Settings
     Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');

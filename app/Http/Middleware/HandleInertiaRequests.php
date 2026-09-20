@@ -35,7 +35,14 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'roles' => $request->user()?->getRoleNames() ?? [],
                 'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],
-                'kindergarten' => $request->user()?->kindergarten,
+                'kindergarten' => $request->user()?->activeKindergarten() ?? $request->user()?->kindergarten,
+                'available_kindergartens' => ($request->user()?->hasRole('super_admin') || $request->user()?->role === 'super_admin')
+                    ? \App\Models\Kindergarten::select('id', 'name', 'city', 'state', 'invoice_prefix')->get()
+                    : ($request->user()?->kindergarten ? [$request->user()->kindergarten] : []),
+            ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
             ],
         ];
     }

@@ -36,4 +36,22 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Kindergarten::class);
     }
+
+    public function activeKindergarten(): ?Kindergarten
+    {
+        if ($this->hasRole('super_admin') || $this->role === 'super_admin') {
+            $activeId = session('active_kindergarten_id');
+            if ($activeId) {
+                return Kindergarten::find($activeId) ?? $this->kindergarten ?? Kindergarten::first();
+            }
+            return $this->kindergarten ?? Kindergarten::first();
+        }
+
+        return $this->kindergarten;
+    }
+
+    public function activeKindergartenId(): ?int
+    {
+        return $this->activeKindergarten()?->id ?? $this->kindergarten_id;
+    }
 }

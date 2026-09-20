@@ -304,5 +304,47 @@ class DatabaseSeeder extends Seeder
                 ['invoice_id' => $inv3->id, 'description' => 'Transportation Van (Van Sekolah)'],
                 ['quantity' => 1, 'unit_price' => 120.00, 'discount' => 0.00, 'total' => 120.00]
             );
+
+            // ==========================================
+            // 11. Seed Branch 2: Tadika Ceria Cawangan Bangi (Multi-Tenant Branch)
+            // ==========================================
+            $bangiBranch = Kindergarten::firstOrCreate(
+                ['name' => 'Tadika Ceria Cawangan Bangi'],
+                [
+                    'registration_no' => 'SSM-2026-TDK0020',
+                    'address' => 'No 12, Seksyen 8, Bandar Baru Bangi',
+                    'city' => 'Bangi',
+                    'state' => 'Selangor',
+                    'postcode' => '43650',
+                    'phone' => '03-89215678',
+                    'email' => 'bangi@ceriademo.edu.my',
+                    'invoice_prefix' => 'TCB',
+                    'invoice_day' => 1,
+                    'payment_gateway' => 'billplz',
+                    'timezone' => 'Asia/Kuala_Lumpur',
+                ]
+            );
+
+            $bangiClass1 = ClassGroup::firstOrCreate(
+                ['kindergarten_id' => $bangiBranch->id, 'name' => '5 Tahun Al-Farabi'],
+                ['academic_year' => 2026, 'capacity' => 20]
+            );
+
+            $bangiStudent = Student::firstOrCreate(
+                ['kindergarten_id' => $bangiBranch->id, 'name' => 'Nur Aina Safiya binti Azman'],
+                [
+                    'class_group_id' => $bangiClass1->id,
+                    'ic_number' => '210815-10-3456',
+                    'date_of_birth' => '2021-08-15',
+                    'gender' => 'female',
+                    'enrollment_date' => '2026-01-05',
+                    'status' => 'active',
+                ]
+            );
+
+            $bangiFee = FeeTemplate::firstOrCreate(
+                ['kindergarten_id' => $bangiBranch->id, 'name' => 'Monthly Tuition (Yuran Bulanan)'],
+                ['type' => 'recurring', 'amount' => 380.00, 'frequency' => 'monthly', 'is_active' => true]
+            );
     }
 }
